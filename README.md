@@ -93,7 +93,7 @@ Same setup as `msn-query-collection`: connect the GitHub repo in Cloudflare (**W
 
 | Setting | Value |
 | --- | --- |
-| Build command | `npm run build` |
+| Build command | `npm run build` (optional – `wrangler.toml` also runs it) |
 | Deploy command | `npx wrangler deploy` |
 | Root directory | `/` |
 

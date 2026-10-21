@@ -1,6 +1,10 @@
 name = "msn-autopilotsnap"
 compatibility_date = "2025-01-01"
 
+# Wrangler runs this before uploading, so `npx wrangler deploy` alone is enough.
+[build]
+command = "npm run build"
+
 # Static site only – no Worker script. Cloudflare serves the Vite build output.
 [assets]
 directory = "dist"
