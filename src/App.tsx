@@ -167,6 +167,7 @@ function ScanView({ onDevice }: { onDevice: (d: DeviceLink) => void }) {
   const [active, setActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hint, setHint] = useState<string | null>(null);
+  const [dragging, setDragging] = useState(false);
 
   const stop = useCallback(() => {
     sessionRef.current?.stop();
@@ -224,15 +225,41 @@ function ScanView({ onDevice }: { onDevice: (d: DeviceLink) => void }) {
     }
   };
 
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragging(false);
+    const file = Array.from(e.dataTransfer.files).find((f) => f.type.startsWith("image/"));
+    if (!file) {
+      setError("Drop an image file containing the QR code.");
+      return;
+    }
+    stop();
+    void onFile(file);
+  };
+
   return (
-    <section className="card hero">
+    <section
+      className={`card hero ${dragging ? "dragging" : ""}`}
+      onDragOver={(e) => {
+        e.preventDefault();
+        setDragging(true);
+      }}
+      onDragLeave={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDragging(false);
+      }}
+      onDrop={onDrop}
+    >
       <p className="lead">
         Send Windows Autopilot device information to your IT team. No admin credentials required.
       </p>
 
       <div className={`viewfinder ${active ? "live" : ""}`}>
         <video ref={videoRef} muted playsInline />
-        {!active && <span className="vf-hint">Point the camera at the QR code on the Windows setup screen</span>}
+        {!active && (
+          <span className="vf-hint">
+            {dragging ? "Drop the QR image here" : "Point the camera at the QR code on the Windows setup screen"}
+          </span>
+        )}
         {active && <span className="reticle" aria-hidden />}
       </div>
 
@@ -254,7 +281,7 @@ function ScanView({ onDevice }: { onDevice: (d: DeviceLink) => void }) {
       )}
 
       <label className="link">
-        or upload QR image
+        or upload or drop a QR image
         <input
           type="file"
           accept="image/*"
