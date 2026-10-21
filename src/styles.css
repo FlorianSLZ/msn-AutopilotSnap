@@ -154,3 +154,7 @@ main { flex: 1; }
 @media (min-width: 560px) {
   .viewfinder { aspect-ratio: 4 / 3; }
 }
+
+/* send to mobile */
+.qr { width: 100%; max-width: 240px; height: auto; margin: 0 auto; display: block; border-radius: var(--r-lg); }
+.qr-url { text-align: center; word-break: break-all; font-size: 13px; }

@@ -5,6 +5,7 @@ import { canShareFile, downloadFile, openMailClient, sendFile, type MailContent 
 import { decodeImageFile, ScanError, startCameraScan, type CameraSession } from "./lib/scanner";
 import { Faq } from "./Faq";
 import { HowTo } from "./HowTo";
+import { appUrl, createQr } from "./lib/qr";
 import { isValidEmail, loadRecipient, saveRecipient } from "./lib/settings";
 
 type Step = "scan" | "review";
@@ -81,6 +82,7 @@ export function App() {
   const [notice, setNotice] = useState<string | null>(null);
   const [recipient, setRecipient] = useState(loadRecipient);
   const [showSettings, setShowSettings] = useState(false);
+  const [showMobile, setShowMobile] = useState(false);
   const route = useRoute();
 
   const startOver = useCallback(() => {
@@ -118,6 +120,12 @@ export function App() {
             </a>
           </div>
           <div className="nav-actions">
+            <button className="theme-toggle" onClick={() => setShowMobile(true)} aria-label="Send to mobile" title="Send to mobile">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <rect x="4.5" y="1.5" width="7" height="13" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M7 12h2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+            </button>
             <button className="theme-toggle" onClick={() => setShowSettings(true)} aria-label="Settings" title="Settings">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                 <path d="M2 4h7M12 4h2M2 12h2M7 12h7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -209,6 +217,8 @@ export function App() {
           </p>
         </div>
       </footer>
+
+      {showMobile && <MobileDialog onClose={() => setShowMobile(false)} />}
 
       {showSettings && (
         <SettingsDialog
@@ -521,6 +531,62 @@ function SettingsDialog({ value, onSave, onClose }: { value: string; onSave: (v:
           </button>
         </div>
       </form>
+    </div>
+  );
+}
+
+function MobileDialog({ onClose }: { onClose: () => void }) {
+  const url = appUrl();
+  const qr = createQr(url);
+  const [status, setStatus] = useState<string | null>(null);
+  const canShare = typeof navigator.share === "function";
+  const quiet = 3;
+  const dim = qr.size + quiet * 2;
+
+  const share = async () => {
+    try {
+      await navigator.share({ title: "AutopilotSnap", text: "Scan the Autopilot QR code and send it to IT:", url });
+    } catch (e) {
+      if (!(e instanceof DOMException && e.name === "AbortError")) setStatus("Sharing failed. Copy the link instead.");
+    }
+  };
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setStatus("Link copied.");
+    } catch {
+      setStatus("Copy failed. Select the link and copy it manually.");
+    }
+  };
+
+  return (
+    <div className="overlay" role="dialog" aria-modal="true" aria-labelledby="mobile-title" onClick={onClose}>
+      <div className="card dialog" onClick={(e) => e.stopPropagation()}>
+        <h2 id="mobile-title">Send to mobile</h2>
+        <p className="muted">Scan this code with your phone to open AutopilotSnap there, then scan the Windows QR code with its camera.</p>
+        <svg className="qr" viewBox={`${-quiet} ${-quiet} ${dim} ${dim}`} role="img" aria-label={`QR code for ${url}`} shapeRendering="crispEdges">
+          <rect x={-quiet} y={-quiet} width={dim} height={dim} fill="#fff" />
+          <path d={qr.path} fill="#000" />
+        </svg>
+        <p className="muted qr-url">{url}</p>
+        {status && (
+          <p className="note" role="status">
+            {status}
+          </p>
+        )}
+        {canShare && (
+          <button className="btn primary" onClick={() => void share()}>
+            Share link
+          </button>
+        )}
+        <button className={`btn ${canShare ? "secondary" : "primary"}`} onClick={() => void copy()}>
+          Copy link
+        </button>
+        <button className="btn secondary" onClick={onClose}>
+          Close
+        </button>
+      </div>
     </div>
   );
 }
