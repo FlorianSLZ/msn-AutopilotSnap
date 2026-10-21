@@ -2,99 +2,77 @@
 
 **Scan. Send. Deploy.**
 
-Scan the Windows Autopilot Device Preparation QR code on a device sitting at OOBE, review the detected device, and send a ready-made CSV to your IT team. The person preparing the device needs **no** Intune credentials, Graph permissions, tenant access or Entra account.
+Send Windows Autopilot device information to your IT team, straight from your phone. No admin credentials required.
 
-> AutopilotSnap is an independent community project. It is **not** an official Microsoft product and is not affiliated with or endorsed by Microsoft. Windows, Autopilot, Intune and Entra are trademarks of Microsoft.
+AutopilotSnap is a small web app for the person who unboxes and prepares Windows devices. You scan the QR code that Windows shows during setup, check the detected device, and send a ready-made CSV to the IT administrator. The administrator uploads that file to Intune. You never sign in to anything.
 
-## How it works
+> AutopilotSnap is an independent community project by [msnugget](https://msnugget.com). It is **not** an official Microsoft product and is not affiliated with or endorsed by Microsoft.
 
-```
-Windows OOBE
-      │
-      │ QR
-      ▼
- AutopilotSnap          (runs entirely in your browser)
-      │
-      ├── Decode DeviceLink
-      ├── Generate CSV
-      │
-      ▼
- Share / Email client   (Web Share sheet, or download + mailto:)
-      │
-      ▼
- Intune Administrator   (uploads the CSV)
-```
+<p>
+  <img src="public/howto/step-2.png" alt="The scan screen" width="320">
+  <img src="public/howto/step-3.png" alt="A detected device" width="320">
+</p>
 
-1. At OOBE press the Windows key five times to open the Autopilot menu and show the QR code.
-2. Open AutopilotSnap on a phone, tap **Scan QR Code** (or upload or drop one or more photos of the codes).
-3. Review serial number, manufacturer and model.
-4. Tap **Add another device** to batch several devices into one CSV (one line each), then **Send**.
+## How to use it
 
-### Sending: honest about attachments
+**For the person preparing the device**
 
-A `mailto:` link cannot attach a locally generated file. So:
+1. Turn on the Windows device and stop at the first setup screen (region selection). Press the **Windows key five times** to open the Autopilot menu and choose **Scan QR code**. A QR code appears on the screen.
+2. Open AutopilotSnap on your phone or laptop and tap **Scan QR Code**. No camera? Take a photo or screenshot of the code and upload or drop it instead. You can add several images at once.
+3. Check the serial number, manufacturer and model.
+4. Tap **Send**. Your device's share sheet opens with the CSV attached; pick your mail app and your IT team's address. Use **Add another device** first if you want to send several devices in one file.
 
-1. If the browser supports sharing files (`navigator.canShare({ files })` – typical on Android/iOS), the share sheet opens with the CSV, and you can pick your mail app.
-2. Otherwise the CSV is downloaded and your default mail client opens with subject and body prefilled. **You must attach the downloaded CSV yourself**; the app tells you so.
+If your browser cannot share files, the CSV is downloaded and your mail app opens. In that case **attach the downloaded file yourself**; web pages cannot attach files to an email automatically.
 
-There is no SMTP, Graph `Mail.Send`, backend or API key. Pick the recipient in your own mail app. Optionally set an IT address under Settings to prefill the fallback email; it is stored only in your browser's `localStorage`.
+**For the IT administrator**
 
-## Formats
+Upload the CSV in the Intune admin center as a corporate device identifier: **Devices → Enrollment → Corporate device identifiers → Add → Upload a CSV file → Manufacturer, model and serial number**. Menu names can change, so check Microsoft's documentation if you don't see them.
 
-**QR payload** (`src/lib/devicelink.ts`):
-
-```
-devicelink:/1/?sn=<serial>&data=<url-encoded base64( gzip( JSON ) )>
-```
-
-The JSON uses short keys (`ver`, `dlict`, `di{man,mod,sn,li,…}`, `dlkd{…}`). AutopilotSnap validates it (version `1.0`, serial in the URL equals the serial in the JSON, 4 KB QR / 16 KB inflated size limits) and extracts manufacturer, model and serial number. Nothing is guessed: missing or malformed values are rejected.
-
-**CSV** (`src/lib/csv.ts`): the Intune *Corporate device identifier* import format "Manufacturer, model and serial number" – no header row, one device per line, CRLF:
+The file has one line per device and no header row:
 
 ```
 Microsoft Corporation,Surface Laptop Studio,0F00NFU231300C
 ```
 
-Admins upload it in the Intune admin center under **Devices → Enrollment → Corporate device identifiers → Add → Upload a CSV file → Manufacturer, model and serial number**. File name: `AutopilotSnap-<SERIAL>.csv`.
+This is the corporate-identifier route for Windows Autopilot device preparation. It is not the signed file used by Intune's *Device association*.
 
-> This is the *corporate identifier* route for Autopilot device preparation. It is not the signed OOBE "Export device information" DeviceLink CSV used by *Device association*, and not the hardware-hash CSV of classic Autopilot.
+More answers are on the FAQ page inside the app.
 
 ## Privacy
 
-- QR decoding (zxing-wasm, bundled locally), DeviceLink parsing and CSV creation all run in your browser.
-- No backend, telemetry, analytics, cookies or third-party requests. Camera frames and images never leave the device.
-- Device data is held in memory only, cleared on **Scan another device**, and never written to `localStorage`. Only the recipient address is persisted.
-- The raw QR payload is never shown, logged or put in error messages.
-- Data leaves your browser only when you explicitly share, download or email the CSV.
+- Everything happens in your browser: the QR code is decoded, the CSV is created, and nothing is uploaded to AutopilotSnap or anyone else.
+- No backend, no accounts, no analytics, no telemetry, no cookies.
+- Camera images and uploaded pictures never leave your device.
+- Device data is kept in memory only and is gone when you reload the page or tap **Start over**.
+- Your browser stores only your light/dark choice and, if you set one, an optional IT email address.
+- Data leaves your browser only when you tap Send or Download CSV.
 
-## Development
+## Self-hosting
+
+AutopilotSnap is a static website, so any static host works (Cloudflare Pages or Workers, GitHub Pages, Azure Static Web Apps, and so on). The camera needs HTTPS.
+
+```bash
+npm install
+npm run build      # static site in dist/
+```
+
+For Cloudflare, connect the repository and use build command `npm run build` and deploy command `npx wrangler deploy`. `wrangler.toml` serves `dist/` as static assets; there is no server-side code.
+
+## Contributing and development
 
 ```bash
 npm install
 npm run dev        # local dev server
 npm run typecheck
 npm test
-npm run build      # static output in dist/
 ```
 
-Camera access needs HTTPS (or `localhost`). To test on a phone, use a tunnel or deploy a preview; uploading a QR image works anywhere.
+Built with Vite, React and strict TypeScript. QR decoding uses [zxing-wasm](https://github.com/Sec-ant/zxing-wasm), served from the app itself. The code is organised in small modules under `src/lib`: `devicelink.ts` (QR parsing), `csv.ts`, `share.ts` and `scanner.ts`. Tests use obviously synthetic data; never commit real QR payloads or device exports.
 
-The build is fully static (`base: "./"`) and deploys as-is to GitHub Pages, Cloudflare Pages or Azure Static Web Apps.
+Issues and pull requests are welcome.
 
-Tests use obviously synthetic fixtures (`src/lib/fixtures.ts`); never commit real DeviceLink payloads or exports.
+## Credits and licence
 
-## Credits & licence
+Built by [Florian Salzmann](https://scloud.work/about-florian/) and [Jannik Reinhard](https://jannikreinhard.com/about/). MIT licence, see [LICENSE](LICENSE).
 
-MIT – see [LICENSE](LICENSE). The DeviceLink QR layout was learned from [Simsen/AutopilotQR](https://github.com/Simsen/AutopilotQR) (MIT). AutopilotSnap is an independent implementation and contains none of its Graph/authentication code.
-
-## Deploying to Cloudflare (build on push)
-
-Same setup as `msn-query-collection`: connect the GitHub repo in Cloudflare (**Workers & Pages → Create → Import a repository**) and use:
-
-| Setting | Value |
-| --- | --- |
-| Build command | `npm run build` (optional – `wrangler.toml` also runs it) |
-| Deploy command | `npx wrangler deploy` |
-| Root directory | `/` |
-
-`wrangler.toml` serves `dist/` as static assets – there is no Worker code and no server-side component. Every push to the production branch builds and deploys; other branches get preview URLs. Cloudflare serves HTTPS, which the camera requires. Because the build is relative (`base: "./"`), GitHub Pages and Azure Static Web Apps work too.
+The layout of the Windows QR payload was learned from [Simsen/AutopilotQR](https://github.com/Simsen/AutopilotQR) (MIT). AutopilotSnap is an independent implementation and contains none of its Microsoft Graph or sign-in code.
