@@ -3,8 +3,10 @@ import { DeviceLinkError, looksLikeDeviceLink, parseDeviceLink, type DeviceLink 
 import { createAutopilotCsv, csvFilenameFor } from "./lib/csv";
 import { canShareFile, downloadFile, openMailClient, sendFile, type MailContent } from "./lib/share";
 import { decodeImageFile, ScanError, startCameraScan, type CameraSession } from "./lib/scanner";
+import "./polish.css";
 import { Faq } from "./Faq";
 import { HowTo } from "./HowTo";
+import { scanFeedback } from "./lib/feedback";
 import { appUrl, createQr } from "./lib/qr";
 import { isValidEmail, loadRecipient, saveRecipient } from "./lib/settings";
 
@@ -92,6 +94,7 @@ export function App() {
   }, []);
 
   const onDevices = useCallback((added: DeviceLink[], note: string | null) => {
+    scanFeedback();
     setDevices((cur) => mergeDevices(cur, added));
     setNotice(note);
     setStep("review");
@@ -152,7 +155,10 @@ export function App() {
       ) : (
         <>
       <div className="intro">
-        <h1>Scan. Send. Deploy.</h1>
+        <h1>
+          Scan. Send. <span className="accent">Deploy.</span>
+        </h1>
+        <p className="subline">From the Windows setup screen to your IT team in under a minute.</p>
       </div>
 
       <ol className="steps" aria-label="Progress">
@@ -343,7 +349,15 @@ function ScanView({ onDevices, existing, onBack }: { onDevices: (d: DeviceLink[]
             {dragging ? "Drop the QR images here" : "Point the camera at the QR code on the Windows setup screen"}
           </span>
         )}
-        {active && <span className="reticle" aria-hidden />}
+        {active && (
+          <span className="reticle" aria-hidden>
+            <i className="c tl" />
+            <i className="c tr" />
+            <i className="c bl" />
+            <i className="c br" />
+            <i className="sweep" />
+          </span>
+        )}
       </div>
 
       {hint && !error && <p className="note">{hint}</p>}
@@ -403,7 +417,17 @@ function ReviewView({
 }) {
   const [status, setStatus] = useState<string | null>(null);
   const [manualAttach, setManualAttach] = useState(false);
+  const [copied, setCopied] = useState(false);
   const many = devices.length > 1;
+  const copySerial = async (sn: string) => {
+    try {
+      await navigator.clipboard.writeText(sn);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* clipboard unavailable */
+    }
+  };
   const filename = csvFilenameFor(devices);
 
   const makeFile = () => new File([createAutopilotCsv(devices)], filename, { type: "text/csv" });
@@ -424,14 +448,25 @@ function ReviewView({
 
   return (
     <section className="card">
-      <p className="ok">✓ {many ? `${devices.length} devices detected` : "Device detected"}</p>
+      <p className="ok">
+        <svg className="check" width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+          <circle cx="14" cy="14" r="12.5" stroke="currentColor" strokeWidth="2" />
+          <path d="M8.5 14.5l3.8 3.8 7.2-8" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        {many ? `${devices.length} devices detected` : "Device detected"}
+      </p>
       {notice && <p className="note">{notice}</p>}
 
       {!many && first ? (
         <dl className="facts">
           <div>
             <dt>Serial number</dt>
-            <dd className="serial">{first.serialNumber}</dd>
+            <dd className="serial">
+              {first.serialNumber}
+              <button className="textbtn" onClick={() => void copySerial(first.serialNumber)}>
+                {copied ? "Copied" : "Copy"}
+              </button>
+            </dd>
           </div>
           <div>
             <dt>Manufacturer</dt>
@@ -446,6 +481,9 @@ function ReviewView({
         <ul className="devices">
           {devices.map((d) => (
             <li key={d.serialNumber}>
+              <span className="avatar" aria-hidden="true">
+                {(d.manufacturer.trim()[0] ?? "?").toUpperCase()}
+              </span>
               <div>
                 <span className="serial-sm">{d.serialNumber}</span>
                 <span className="muted">
