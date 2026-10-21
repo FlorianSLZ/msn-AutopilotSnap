@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#181818" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="description" content="Scan the Windows Autopilot QR code and send the device information to your IT team. Everything stays in your browser." />
+    <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <script>
+      // Apply the saved/OS theme before first paint (dark is the default).
+      try {
+        var s = localStorage.getItem("theme");
+        var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+        if (s === "light" || (!s && !dark)) document.documentElement.setAttribute("data-theme", "light");
+      } catch (e) {}
+    </script>
+    <title>AutopilotSnap</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
