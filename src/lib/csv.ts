@@ -19,13 +19,21 @@ function neutralise(value: string): string {
   return /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
 }
 
-export function createAutopilotCsvText(device: CsvDevice): string {
-  const fields = [device.manufacturer, device.model, device.serialNumber].map((v) => escapeCsvField(neutralise(v.trim())));
-  return `${fields.join(",")}\r\n`;
+/** One line per device; duplicates (same serial) are written once. */
+export function createAutopilotCsvText(devices: CsvDevice | CsvDevice[]): string {
+  const list = Array.isArray(devices) ? devices : [devices];
+  const seen = new Set<string>();
+  let out = "";
+  for (const d of list) {
+    if (seen.has(d.serialNumber)) continue;
+    seen.add(d.serialNumber);
+    out += [d.manufacturer, d.model, d.serialNumber].map((v) => escapeCsvField(neutralise(v.trim()))).join(",") + "\r\n";
+  }
+  return out;
 }
 
-export function createAutopilotCsv(device: CsvDevice): Blob {
-  return new Blob([createAutopilotCsvText(device)], { type: "text/csv;charset=utf-8" });
+export function createAutopilotCsv(devices: CsvDevice | CsvDevice[]): Blob {
+  return new Blob([createAutopilotCsvText(devices)], { type: "text/csv;charset=utf-8" });
 }
 
 /** `AutopilotSnap-<SERIAL>.csv`, with characters unsafe in file names replaced. */
@@ -36,4 +44,10 @@ export function csvFilename(serialNumber: string): string {
     .replace(/^[._]+|[._]+$/g, "")
     .slice(0, 64);
   return `AutopilotSnap-${safe || "device"}.csv`;
+}
+
+/** Single device: `AutopilotSnap-<SERIAL>.csv`; several: `AutopilotSnap-<N>-devices.csv`. */
+export function csvFilenameFor(devices: CsvDevice[]): string {
+  const first = devices[0];
+  return devices.length === 1 && first ? csvFilename(first.serialNumber) : `AutopilotSnap-${devices.length}-devices.csv`;
 }

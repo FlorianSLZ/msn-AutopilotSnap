@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DeviceLinkError, looksLikeDeviceLink, parseDeviceLink, type DeviceLink } from "./lib/devicelink";
-import { createAutopilotCsv, csvFilename } from "./lib/csv";
+import { createAutopilotCsv, csvFilenameFor } from "./lib/csv";
 import { canShareFile, downloadFile, openMailClient, sendFile, type MailContent } from "./lib/share";
 import { decodeImageFile, ScanError, startCameraScan, type CameraSession } from "./lib/scanner";
 import { isValidEmail, loadRecipient, saveRecipient } from "./lib/settings";
@@ -24,37 +24,57 @@ function errorMessage(e: unknown): string {
   return "Something went wrong. Please try again.";
 }
 
-function mailFor(device: DeviceLink, to: string): MailContent {
+function mailFor(devices: DeviceLink[], to: string): MailContent {
+  const one = devices.length === 1 ? devices[0] : undefined;
+  const lines = one
+    ? [`Serial number: ${one.serialNumber}`, `Manufacturer: ${one.manufacturer}`, `Model: ${one.model}`]
+    : devices.map((d) => `- ${d.serialNumber} (${d.manufacturer} ${d.model})`);
   return {
     to,
-    subject: `Autopilot device association - ${device.serialNumber}`,
+    subject: one
+      ? `Autopilot device association - ${one.serialNumber}`
+      : `Autopilot device association - ${devices.length} devices`,
     body: [
       "Hello,",
       "",
-      "Attached is the Autopilot device information for:",
+      one ? "Attached is the Autopilot device information for:" : `Attached are the Autopilot device details for ${devices.length} devices:`,
       "",
-      `Serial number: ${device.serialNumber}`,
-      `Manufacturer: ${device.manufacturer}`,
-      `Model: ${device.model}`,
+      ...lines,
       "",
       "Generated using AutopilotSnap.",
     ].join("\n"),
   };
 }
 
+/** Add devices to the list, skipping serial numbers that are already present. */
+function mergeDevices(current: DeviceLink[], added: DeviceLink[]): DeviceLink[] {
+  const seen = new Set(current.map((d) => d.serialNumber));
+  const out = [...current];
+  for (const d of added) {
+    if (!seen.has(d.serialNumber)) {
+      seen.add(d.serialNumber);
+      out.push(d);
+    }
+  }
+  return out;
+}
+
 export function App() {
   const [step, setStep] = useState<Step>("scan");
-  const [device, setDevice] = useState<DeviceLink | null>(null);
+  const [devices, setDevices] = useState<DeviceLink[]>([]);
+  const [notice, setNotice] = useState<string | null>(null);
   const [recipient, setRecipient] = useState(loadRecipient);
   const [showSettings, setShowSettings] = useState(false);
 
-  const reset = useCallback(() => {
-    setDevice(null);
+  const startOver = useCallback(() => {
+    setDevices([]);
+    setNotice(null);
     setStep("scan");
   }, []);
 
-  const onDevice = useCallback((d: DeviceLink) => {
-    setDevice(d);
+  const onDevices = useCallback((added: DeviceLink[], note: string | null) => {
+    setDevices((cur) => mergeDevices(cur, added));
+    setNotice(note);
     setStep("review");
   }, []);
 
@@ -108,9 +128,24 @@ export function App() {
       </ol>
 
       <main>
-        {step === "scan" && <ScanView onDevice={onDevice} />}
-        {step === "review" && device && (
-          <ReviewView device={device} recipient={recipient} onNeedRecipient={() => setShowSettings(true)} onReset={reset} />
+        {step === "scan" && <ScanView onDevices={onDevices} existing={devices.length} onBack={() => setStep("review")} />}
+        {step === "review" && devices.length > 0 && (
+          <ReviewView
+            devices={devices}
+            notice={notice}
+            recipient={recipient}
+            onNeedRecipient={() => setShowSettings(true)}
+            onAdd={() => {
+              setNotice(null);
+              setStep("scan");
+            }}
+            onRemove={(sn) => {
+              const rest = devices.filter((d) => d.serialNumber !== sn);
+              setDevices(rest);
+              if (rest.length === 0) setStep("scan");
+            }}
+            onStartOver={startOver}
+          />
         )}
       </main>
 
@@ -160,7 +195,7 @@ export function App() {
   );
 }
 
-function ScanView({ onDevice }: { onDevice: (d: DeviceLink) => void }) {
+function ScanView({ onDevices, existing, onBack }: { onDevices: (d: DeviceLink[], note: string | null) => void; existing: number; onBack: () => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const sessionRef = useRef<CameraSession | null>(null);
   const handlingRef = useRef(false);
@@ -177,10 +212,10 @@ function ScanView({ onDevice }: { onDevice: (d: DeviceLink) => void }) {
 
   useEffect(() => stop, [stop]);
 
-  const handleText = useCallback(
-    async (text: string, fromCamera: boolean) => {
+  const handleCamera = useCallback(
+    async (text: string) => {
       if (handlingRef.current) return;
-      if (fromCamera && !looksLikeDeviceLink(text)) {
+      if (!looksLikeDeviceLink(text)) {
         setHint("A QR code was found, but it is not a Windows Autopilot code. Keep scanning…");
         return;
       }
@@ -188,14 +223,14 @@ function ScanView({ onDevice }: { onDevice: (d: DeviceLink) => void }) {
       try {
         const d = await parseDeviceLink(text);
         stop();
-        onDevice(d);
+        onDevices([d], null);
       } catch (e) {
-        if (fromCamera) stop();
+        stop();
         setError(errorMessage(e));
         handlingRef.current = false;
       }
     },
-    [onDevice, stop],
+    [onDevices, stop],
   );
 
   const start = async () => {
@@ -206,35 +241,39 @@ function ScanView({ onDevice }: { onDevice: (d: DeviceLink) => void }) {
     await new Promise((r) => requestAnimationFrame(r));
     try {
       if (!videoRef.current) throw new ScanError("camera-unavailable");
-      sessionRef.current = await startCameraScan(videoRef.current, (t) => void handleText(t, true));
+      sessionRef.current = await startCameraScan(videoRef.current, (t) => void handleCamera(t));
     } catch (e) {
       setActive(false);
       setError(errorMessage(e));
     }
   };
 
-  const onFile = async (file: File | undefined) => {
-    if (!file) return;
-    setError(null);
-    setHint(null);
-    handlingRef.current = false;
-    try {
-      await handleText(await decodeImageFile(file), false);
-    } catch (e) {
-      setError(errorMessage(e));
-    }
-  };
-
-  const onDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragging(false);
-    const file = Array.from(e.dataTransfer.files).find((f) => f.type.startsWith("image/"));
-    if (!file) {
-      setError("Drop an image file containing the QR code.");
+  /** Decode one or many image files; add every valid device, report the rest. */
+  const onFiles = async (files: File[]) => {
+    const images = files.filter((f) => f.type.startsWith("image/"));
+    if (images.length === 0) {
+      setError("Choose or drop image files containing the QR code.");
       return;
     }
     stop();
-    void onFile(file);
+    setError(null);
+    setHint(null);
+    const found: DeviceLink[] = [];
+    let firstError: string | null = null;
+    let failed = 0;
+    for (const file of images) {
+      try {
+        found.push(await parseDeviceLink(await decodeImageFile(file)));
+      } catch (e) {
+        failed++;
+        firstError ??= errorMessage(e);
+      }
+    }
+    if (found.length === 0) {
+      setError(images.length > 1 ? `None of the ${images.length} images could be used. ${firstError}` : firstError);
+      return;
+    }
+    onDevices(found, failed > 0 ? `${failed} of ${images.length} images could not be read: ${firstError}` : null);
   };
 
   return (
@@ -247,7 +286,11 @@ function ScanView({ onDevice }: { onDevice: (d: DeviceLink) => void }) {
       onDragLeave={(e) => {
         if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDragging(false);
       }}
-      onDrop={onDrop}
+      onDrop={(e) => {
+        e.preventDefault();
+        setDragging(false);
+        void onFiles(Array.from(e.dataTransfer.files));
+      }}
     >
       <p className="lead">
         Send Windows Autopilot device information to your IT team. No admin credentials required.
@@ -257,7 +300,7 @@ function ScanView({ onDevice }: { onDevice: (d: DeviceLink) => void }) {
         <video ref={videoRef} muted playsInline />
         {!active && (
           <span className="vf-hint">
-            {dragging ? "Drop the QR image here" : "Point the camera at the QR code on the Windows setup screen"}
+            {dragging ? "Drop the QR images here" : "Point the camera at the QR code on the Windows setup screen"}
           </span>
         )}
         {active && <span className="reticle" aria-hidden />}
@@ -281,36 +324,51 @@ function ScanView({ onDevice }: { onDevice: (d: DeviceLink) => void }) {
       )}
 
       <label className="link">
-        or upload or drop a QR image
+        or upload or drop one or more QR images
         <input
           type="file"
           accept="image/*"
+          multiple
           hidden
           onChange={(e) => {
-            void onFile(e.target.files?.[0]);
+            void onFiles(Array.from(e.target.files ?? []));
             e.target.value = "";
           }}
         />
       </label>
+
+      {existing > 0 && (
+        <button className="link" onClick={onBack}>
+          Back to {existing} detected {existing === 1 ? "device" : "devices"}
+        </button>
+      )}
     </section>
   );
 }
 
 function ReviewView({
-  device,
+  devices,
+  notice,
   recipient,
   onNeedRecipient,
-  onReset,
+  onAdd,
+  onRemove,
+  onStartOver,
 }: {
-  device: DeviceLink;
+  devices: DeviceLink[];
+  notice: string | null;
   recipient: string;
   onNeedRecipient: () => void;
-  onReset: () => void;
+  onAdd: () => void;
+  onRemove: (serial: string) => void;
+  onStartOver: () => void;
 }) {
   const [status, setStatus] = useState<string | null>(null);
   const [manualAttach, setManualAttach] = useState(false);
+  const many = devices.length > 1;
+  const filename = csvFilenameFor(devices);
 
-  const makeFile = () => new File([createAutopilotCsv(device)], csvFilename(device.serialNumber), { type: "text/csv" });
+  const makeFile = () => new File([createAutopilotCsv(devices)], filename, { type: "text/csv" });
   const shareSupported = canShareFile(new File([""], "x.csv", { type: "text/csv" }));
 
   const send = async () => {
@@ -318,7 +376,7 @@ function ReviewView({
       onNeedRecipient();
       return;
     }
-    const outcome = await sendFile(makeFile(), mailFor(device, recipient));
+    const outcome = await sendFile(makeFile(), mailFor(devices, recipient));
     if (outcome === "fallback") {
       setManualAttach(true);
       setStatus(null);
@@ -328,23 +386,45 @@ function ReviewView({
     }
   };
 
+  const first = devices[0];
+
   return (
     <section className="card">
-      <p className="ok">✓ Device detected</p>
-      <dl className="facts">
-        <div>
-          <dt>Serial number</dt>
-          <dd className="serial">{device.serialNumber}</dd>
-        </div>
-        <div>
-          <dt>Manufacturer</dt>
-          <dd>{device.manufacturer}</dd>
-        </div>
-        <div>
-          <dt>Model</dt>
-          <dd>{device.model}</dd>
-        </div>
-      </dl>
+      <p className="ok">✓ {many ? `${devices.length} devices detected` : "Device detected"}</p>
+      {notice && <p className="note">{notice}</p>}
+
+      {!many && first ? (
+        <dl className="facts">
+          <div>
+            <dt>Serial number</dt>
+            <dd className="serial">{first.serialNumber}</dd>
+          </div>
+          <div>
+            <dt>Manufacturer</dt>
+            <dd>{first.manufacturer}</dd>
+          </div>
+          <div>
+            <dt>Model</dt>
+            <dd>{first.model}</dd>
+          </div>
+        </dl>
+      ) : (
+        <ul className="devices">
+          {devices.map((d) => (
+            <li key={d.serialNumber}>
+              <div>
+                <span className="serial-sm">{d.serialNumber}</span>
+                <span className="muted">
+                  {d.manufacturer} · {d.model}
+                </span>
+              </div>
+              <button className="textbtn" onClick={() => onRemove(d.serialNumber)} aria-label={`Remove ${d.serialNumber}`}>
+                Remove
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
 
       <p className="muted">
         {recipient ? (
@@ -371,6 +451,9 @@ function ReviewView({
       >
         Download CSV
       </button>
+      <button className="btn secondary" onClick={onAdd}>
+        Add another device
+      </button>
 
       {!shareSupported && !manualAttach && (
         <p className="note">
@@ -379,16 +462,20 @@ function ReviewView({
       )}
       {manualAttach && (
         <p className="note strong" role="status">
-          CSV downloaded. Your email app should open – <strong>attach {csvFilename(device.serialNumber)}</strong> from your Downloads before sending.{" "}
-          <button className="textbtn" onClick={() => openMailClient(mailFor(device, recipient))}>
+          CSV downloaded. Your email app should open – <strong>attach {filename}</strong> from your Downloads before sending.{" "}
+          <button className="textbtn" onClick={() => openMailClient(mailFor(devices, recipient))}>
             Reopen email
           </button>
         </p>
       )}
-      {status && <p className="note" role="status">{status}</p>}
+      {status && (
+        <p className="note" role="status">
+          {status}
+        </p>
+      )}
 
-      <button className="link" onClick={onReset}>
-        Scan another device
+      <button className="link" onClick={onStartOver}>
+        Start over (clear {many ? "all devices" : "device"})
       </button>
     </section>
   );

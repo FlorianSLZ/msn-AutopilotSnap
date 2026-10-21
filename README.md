@@ -26,9 +26,9 @@ Windows OOBE
 ```
 
 1. At OOBE press the Windows key five times to open the Autopilot menu and show the QR code.
-2. Open AutopilotSnap on a phone, tap **Scan QR Code** (or upload a photo of the code).
+2. Open AutopilotSnap on a phone, tap **Scan QR Code** (or upload or drop one or more photos of the codes).
 3. Review serial number, manufacturer and model.
-4. Tap **Send to IT**.
+4. Tap **Add another device** to batch several devices into one CSV (one line each), then **Send to IT**.
 
 ### Sending: honest about attachments
 
