@@ -64,23 +64,36 @@ export function App() {
   ];
 
   return (
-    <div className="shell">
-      <header className="top">
-        <a className="nav-logo" href="https://msnugget.com" target="_blank" rel="noopener" aria-label="msnugget.com">
-          <span className="logo-msn">msnugget</span>
-          <span className="logo-dot">·</span>
-          <span className="logo-rest">autopilotsnap</span>
-        </a>
-        <div className="tools">
-          <button className="icon-btn" onClick={toggleTheme} aria-label="Toggle light/dark theme" title="Toggle theme">
-            ◐
-          </button>
-          <button className="icon-btn" onClick={() => setShowSettings(true)} aria-label="Settings" title="Settings">
-            ⚙
-          </button>
+    <>
+      <nav className="nav" aria-label="Main navigation">
+        <div className="nav-inner container">
+          <a className="nav-logo" href="https://msnugget.com" target="_blank" rel="noopener" aria-label="msnugget.com">
+            <span className="logo-msn">msnugget</span>
+            <span className="logo-dot">·</span>
+            <span className="logo-rest">autopilotsnap</span>
+          </a>
+          <div className="nav-actions">
+            <button className="theme-toggle" onClick={() => setShowSettings(true)} aria-label="Settings" title="Settings">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M2 4h7M12 4h2M2 12h2M7 12h7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                <circle cx="10.5" cy="4" r="1.6" stroke="currentColor" strokeWidth="1.5" />
+                <circle cx="5.5" cy="12" r="1.6" stroke="currentColor" strokeWidth="1.5" />
+              </svg>
+            </button>
+            <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle light/dark theme" title="Toggle theme">
+            <svg className="icon-sun" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <circle cx="8" cy="8" r="3" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.05 3.05l1.06 1.06M11.89 11.89l1.06 1.06M12.95 3.05l-1.06 1.06M4.11 11.89l-1.06 1.06" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+            <svg className="icon-moon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M13.5 10A6 6 0 016 2.5a6 6 0 100 11 6 6 0 007.5-3.5z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+            </svg>
+            </button>
+          </div>
         </div>
-      </header>
+      </nav>
 
+      <div className="shell">
       <div className="intro">
         <h1>Scan. Send. Deploy.</h1>
       </div>
@@ -101,14 +114,35 @@ export function App() {
         )}
       </main>
 
-      <footer>
-        <p>Everything happens in your browser. Nothing is uploaded.</p>
-        <p>
-          Independent community project – not an official Microsoft product.{" "}
-          <a href="https://github.com/FlorianSLZ/msn-AutopilotSnap" target="_blank" rel="noopener">
-            GitHub
-          </a>
-        </p>
+      </div>
+
+      <footer className="footer">
+        <div className="container footer-inner">
+          <div className="footer-brand">
+            <a className="nav-logo" href="https://msnugget.com" target="_blank" rel="noopener" aria-label="msnugget.com">
+              <span className="logo-msn">msnugget</span>
+              <span className="logo-dot">·</span>
+              <span className="logo-rest">autopilotsnap</span>
+            </a>
+            <p className="footer-tagline">Scan the Autopilot QR code, send it to IT. Everything stays in your browser.</p>
+          </div>
+          <div className="footer-links">
+            <a href="https://github.com/FlorianSLZ/msn-AutopilotSnap" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://github.com/FlorianSLZ/msn-AutopilotSnap/issues/new" target="_blank" rel="noopener">Contribute</a>
+            <a href="https://learn.microsoft.com/en-us/autopilot/device-preparation/overview" target="_blank" rel="noopener">Autopilot Docs</a>
+          </div>
+        </div>
+        <div className="footer-bottom container">
+          <p className="disclaimer">
+            Built by{" "}
+            <a href="https://scloud.work/about-florian/" target="_blank" rel="noopener">Florian Salzmann</a> &amp;{" "}
+            <a href="https://jannikreinhard.com/about/" target="_blank" rel="noopener">Jannik Reinhard</a>
+          </p>
+          <p className="disclaimer">
+            Independent community project – not an official Microsoft product. &copy; {new Date().getFullYear()}{" "}
+            <a href="https://msnugget.com" target="_blank" rel="noopener">msnugget.com</a>
+          </p>
+        </div>
       </footer>
 
       {showSettings && (
@@ -122,7 +156,7 @@ export function App() {
           }}
         />
       )}
-    </div>
+    </>
   );
 }
 
