@@ -28,7 +28,7 @@ Windows OOBE
 1. At OOBE press the Windows key five times to open the Autopilot menu and show the QR code.
 2. Open AutopilotSnap on a phone, tap **Scan QR Code** (or upload or drop one or more photos of the codes).
 3. Review serial number, manufacturer and model.
-4. Tap **Add another device** to batch several devices into one CSV (one line each), then **Send to IT**.
+4. Tap **Add another device** to batch several devices into one CSV (one line each), then **Send**.
 
 ### Sending: honest about attachments
 
@@ -37,7 +37,7 @@ A `mailto:` link cannot attach a locally generated file. So:
 1. If the browser supports sharing files (`navigator.canShare({ files })` – typical on Android/iOS), the share sheet opens with the CSV, and you can pick your mail app.
 2. Otherwise the CSV is downloaded and your default mail client opens with subject and body prefilled. **You must attach the downloaded CSV yourself**; the app tells you so.
 
-There is no SMTP, Graph `Mail.Send`, backend or API key. Set the recipient under ⚙ Settings; it is stored only in your browser's `localStorage`.
+There is no SMTP, Graph `Mail.Send`, backend or API key. Pick the recipient in your own mail app. Optionally set an IT address under Settings to prefill the fallback email; it is stored only in your browser's `localStorage`.
 
 ## Formats
 

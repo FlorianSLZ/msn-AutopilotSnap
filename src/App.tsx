@@ -3,9 +3,25 @@ import { DeviceLinkError, looksLikeDeviceLink, parseDeviceLink, type DeviceLink 
 import { createAutopilotCsv, csvFilenameFor } from "./lib/csv";
 import { canShareFile, downloadFile, openMailClient, sendFile, type MailContent } from "./lib/share";
 import { decodeImageFile, ScanError, startCameraScan, type CameraSession } from "./lib/scanner";
+import { Faq } from "./Faq";
+import { HowTo } from "./HowTo";
 import { isValidEmail, loadRecipient, saveRecipient } from "./lib/settings";
 
 type Step = "scan" | "review";
+
+function useRoute(): "home" | "faq" {
+  const get = (): "home" | "faq" => (window.location.hash.startsWith("#/faq") ? "faq" : "home");
+  const [route, setRoute] = useState(get);
+  useEffect(() => {
+    const on = () => {
+      setRoute(get());
+      window.scrollTo(0, 0);
+    };
+    window.addEventListener("hashchange", on);
+    return () => window.removeEventListener("hashchange", on);
+  }, []);
+  return route;
+}
 
 function toggleTheme() {
   const root = document.documentElement;
@@ -65,6 +81,7 @@ export function App() {
   const [notice, setNotice] = useState<string | null>(null);
   const [recipient, setRecipient] = useState(loadRecipient);
   const [showSettings, setShowSettings] = useState(false);
+  const route = useRoute();
 
   const startOver = useCallback(() => {
     setDevices([]);
@@ -92,6 +109,14 @@ export function App() {
             <span className="logo-dot">·</span>
             <span className="logo-rest">autopilotsnap</span>
           </a>
+          <div className="nav-links">
+            <a href="#/" className="nav-link" aria-current={route === "home" ? "page" : undefined}>
+              Scan
+            </a>
+            <a href="#/faq" className="nav-link" aria-current={route === "faq" ? "page" : undefined}>
+              FAQ
+            </a>
+          </div>
           <div className="nav-actions">
             <button className="theme-toggle" onClick={() => setShowSettings(true)} aria-label="Settings" title="Settings">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -114,6 +139,10 @@ export function App() {
       </nav>
 
       <div className="shell">
+      {route === "faq" ? (
+        <Faq />
+      ) : (
+        <>
       <div className="intro">
         <h1>Scan. Send. Deploy.</h1>
       </div>
@@ -134,7 +163,6 @@ export function App() {
             devices={devices}
             notice={notice}
             recipient={recipient}
-            onNeedRecipient={() => setShowSettings(true)}
             onAdd={() => {
               setNotice(null);
               setStep("scan");
@@ -149,6 +177,9 @@ export function App() {
         )}
       </main>
 
+      {step === "scan" && <HowTo />}
+        </>
+      )}
       </div>
 
       <footer className="footer">
@@ -163,7 +194,6 @@ export function App() {
           </div>
           <div className="footer-links">
             <a href="https://github.com/FlorianSLZ/msn-AutopilotSnap" target="_blank" rel="noopener">GitHub</a>
-            <a href="https://github.com/FlorianSLZ/msn-AutopilotSnap/issues/new" target="_blank" rel="noopener">Contribute</a>
             <a href="https://learn.microsoft.com/en-us/autopilot/device-preparation/overview" target="_blank" rel="noopener">Autopilot Docs</a>
           </div>
         </div>
@@ -350,7 +380,6 @@ function ReviewView({
   devices,
   notice,
   recipient,
-  onNeedRecipient,
   onAdd,
   onRemove,
   onStartOver,
@@ -358,7 +387,6 @@ function ReviewView({
   devices: DeviceLink[];
   notice: string | null;
   recipient: string;
-  onNeedRecipient: () => void;
   onAdd: () => void;
   onRemove: (serial: string) => void;
   onStartOver: () => void;
@@ -372,10 +400,6 @@ function ReviewView({
   const shareSupported = canShareFile(new File([""], "x.csv", { type: "text/csv" }));
 
   const send = async () => {
-    if (!isValidEmail(recipient)) {
-      onNeedRecipient();
-      return;
-    }
     const outcome = await sendFile(makeFile(), mailFor(devices, recipient));
     if (outcome === "fallback") {
       setManualAttach(true);
@@ -426,21 +450,8 @@ function ReviewView({
         </ul>
       )}
 
-      <p className="muted">
-        {recipient ? (
-          <>
-            Sending to <strong>{recipient}</strong>
-          </>
-        ) : (
-          "Set your IT recipient address to send."
-        )}{" "}
-        <button className="textbtn" onClick={onNeedRecipient}>
-          {recipient ? "Change" : "Set"}
-        </button>
-      </p>
-
       <button className="btn primary" onClick={() => void send()}>
-        Send to IT
+        Send
       </button>
       <button
         className="btn secondary"
@@ -457,7 +468,7 @@ function ReviewView({
 
       {!shareSupported && !manualAttach && (
         <p className="note">
-          This browser can’t attach files automatically. “Send to IT” will download the CSV and open your email app – attach the file manually.
+          This browser can’t attach files automatically. “Send” will download the CSV and open your email app – attach the file manually.
         </p>
       )}
       {manualAttach && (
@@ -496,10 +507,10 @@ function SettingsDialog({ value, onSave, onClose }: { value: string; onSave: (v:
       >
         <h2 id="settings-title">Settings</h2>
         <label>
-          IT recipient email address
+          IT email address (optional)
           <input type="email" autoFocus value={v} onChange={(e) => setV(e.target.value)} placeholder="intune-admin@example.com" autoComplete="off" />
         </label>
-        <p className="muted">Stored only in this browser. Never sent anywhere automatically.</p>
+        <p className="muted">Only used to prefill the email app when your browser can’t share files. Stored only in this browser, never sent anywhere.</p>
         {!valid && <p className="error">Enter a valid email address.</p>}
         <div className="row">
           <button type="button" className="btn secondary" onClick={onClose}>
