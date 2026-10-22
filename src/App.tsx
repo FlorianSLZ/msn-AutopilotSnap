@@ -203,8 +203,8 @@ export function App() {
         <div className="footer-bottom container">
           <p className="disclaimer">
             Built by{" "}
-            <a href="https://scloud.work/about-florian/" target="_blank" rel="noopener">Florian Salzmann</a> &amp;{" "}
-            <a href="https://jannikreinhard.com/about/" target="_blank" rel="noopener">Jannik Reinhard</a>
+            <a href="https://www.linkedin.com/in/fsalzmann/" target="_blank" rel="noopener">Florian Salzmann</a> &amp;{" "}
+            <a href="https://www.linkedin.com/in/jannik-r/" target="_blank" rel="noopener">Jannik Reinhard</a>
           </p>
           <p className="disclaimer">
             Independent community project – not an official Microsoft product. &copy; {new Date().getFullYear()}{" "}

@@ -73,6 +73,6 @@ Issues and pull requests are welcome.
 
 ## Credits and licence
 
-Built by [Florian Salzmann](https://scloud.work/about-florian/) and [Jannik Reinhard](https://jannikreinhard.com/about/). MIT licence, see [LICENSE](LICENSE).
+Built by [Florian Salzmann](https://www.linkedin.com/in/fsalzmann/) and [Jannik Reinhard](https://www.linkedin.com/in/jannik-r/). MIT licence, see [LICENSE](LICENSE).
 
 The layout of the Windows QR payload was learned from [Simsen/AutopilotQR](https://github.com/Simsen/AutopilotQR) (MIT). AutopilotSnap is an independent implementation and contains none of its Microsoft Graph or sign-in code.
