@@ -196,7 +196,12 @@ export function App() {
         )}
       </main>
 
-      {step === "scan" && <HowTo />}
+      {step === "scan" && (
+        <>
+          <HowTo />
+          <Faq embedded />
+        </>
+      )}
         </>
       )}
       </div>

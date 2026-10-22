@@ -10,7 +10,9 @@
     <link rel="icon" href="./logo/autopilotsnap-msnugget.svg" type="image/svg+xml" />
     <link rel="icon" href="./logo/autopilotsnap-msnugget.png" type="image/png" />
     <link rel="apple-touch-icon" href="./logo/autopilotsnap-msnugget.png" />
+    <link rel="canonical" href="https://autopilotsnap.msnugget.com/" />
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="AutopilotSnap" />
     <meta property="og:title" content="AutopilotSnap" />
     <meta property="og:description" content="Scan the Windows Autopilot QR code and send the device information to your IT team. Everything stays in your browser." />
     <meta property="og:url" content="https://autopilotsnap.msnugget.com/" />
@@ -19,6 +21,8 @@
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="AutopilotSnap: scan the Windows Autopilot QR code and send the device info to your IT team." />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="AutopilotSnap: Scan the Windows Autopilot QR code, get the CSV" />
+    <meta name="twitter:description" content="Scan the Windows Autopilot QR code and send the device information to your IT team. Everything stays in your browser." />
     <meta name="twitter:image" content="https://autopilotsnap.msnugget.com/og-image.png" />
     <link rel="manifest" href="./manifest.webmanifest" />
     <script>
@@ -29,10 +33,33 @@
         if (s === "light" || (!s && !dark)) document.documentElement.setAttribute("data-theme", "light");
       } catch (e) {}
     </script>
-    <title>AutopilotSnap</title>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "AutopilotSnap",
+      "url": "https://autopilotsnap.msnugget.com/",
+      "description": "Scan the Windows Autopilot Device Preparation QR code and send the manufacturer, model and serial number as a CSV to your IT team. Runs entirely in the browser.",
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "Any",
+      "browserRequirements": "Requires a modern browser with JavaScript; camera optional",
+      "isAccessibleForFree": true,
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "publisher": { "@type": "Organization", "name": "msnugget", "url": "https://msnugget.com/" }
+    }
+    </script>
+    <title>AutopilotSnap: Scan the Windows Autopilot QR code, get the CSV</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <main style="max-width:42rem;margin:0 auto;padding:2rem 1rem;font-family:system-ui,sans-serif">
+        <h1>AutopilotSnap: scan the Windows Autopilot QR code</h1>
+        <p>AutopilotSnap is a free browser tool for technicians who prepare Windows devices. Scan the QR code that Windows shows during setup (OOBE), check the detected device and send a ready-made CSV (Manufacturer, Model, Serial number) to your IT team, who upload it to Intune as a corporate device identifier.</p>
+        <p>No sign-in, no Intune or Entra access, no backend, no analytics and no cookies. The QR code is decoded and the CSV is created in your browser and nothing is uploaded.</p>
+        <p>Open the Autopilot menu on the first OOBE screen by pressing the Windows key five times, choose "Scan QR code", then point your phone camera at it or upload a photo of the code. Several devices can go into one CSV.</p>
+        <p>Independent community project by msnugget, not affiliated with Microsoft. Based on the idea of Simon's open-source AutopilotQR (MIT). Requires JavaScript.</p>
+      </main>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

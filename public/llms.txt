@@ -1,0 +1,9 @@
+# AutopilotSnap
+
+> Free, client-only web app that scans the Windows Autopilot Device Preparation OOBE QR code and sends the device's manufacturer, model and serial number as a CSV to an IT team. No backend, no sign-in, no analytics; data stays in the browser.
+
+- [App](https://autopilotsnap.msnugget.com/): scan or upload the QR code, review devices, share the CSV
+- [FAQ](https://autopilotsnap.msnugget.com/#/faq): privacy, CSV format, Intune upload, Device association vs corporate identifiers
+- [Source](https://github.com/FlorianSLZ/msn-AutopilotSnap): open source (MIT)
+
+Independent community project by msnugget, not affiliated with Microsoft. Credit: Simsen/AutopilotQR (MIT) for the initial idea.

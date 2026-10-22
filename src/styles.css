@@ -145,6 +145,7 @@ main { flex: 1; }
 
 /* faq */
 .faq { display: flex; flex-direction: column; gap: 16px; }
+.howto + .faq { margin-top: 32px; }
 .faq-list { display: grid; gap: 8px; }
 .faq-item { background: var(--elevated); border-radius: var(--r-card); padding: 0 20px; }
 .faq-item summary { cursor: pointer; padding: 16px 0; font-size: 16px; font-weight: 500; list-style: none; display: flex; justify-content: space-between; gap: 12px; }

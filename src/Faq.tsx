@@ -45,7 +45,7 @@ const FAQ: Array<{ q: string; a: React.ReactNode }> = [
   },
 ];
 
-export function Faq() {
+export function Faq({ embedded = false }: { embedded?: boolean }) {
   return (
     <section className="faq" aria-labelledby="faq-title">
       <h2 id="faq-title">Frequently asked questions</h2>
@@ -57,9 +57,11 @@ export function Faq() {
           </details>
         ))}
       </div>
-      <a className="btn secondary back" href="#/">
-        Back to scanner
-      </a>
+      {!embedded && (
+        <a className="btn secondary back" href="#/">
+          Back to scanner
+        </a>
+      )}
     </section>
   );
 }
