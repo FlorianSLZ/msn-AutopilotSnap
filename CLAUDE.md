@@ -19,6 +19,10 @@ npm run build                        # typecheck + vite build -> dist/
 
 There is no linter configured. Tests cover `src/lib` only; there are no component or browser tests.
 
+## Releases
+
+Every push to `main` is versioned by `.github/workflows/release.yml` running `scripts/release.mjs`: it picks the next semver from commits since the last `v*` tag (`feat:` minor, `type!:` or `BREAKING CHANGE:` major, anything else patch), prepends `CHANGELOG.md`, bumps `package.json`/`package-lock.json`, tags and creates a GitHub release. The bot commit (`chore(release): vX [skip ci]`) lands on `main`, so `git pull` before your next push. Preview with `node scripts/release.mjs --dry-run`. Use conventional prefixes (`feat:`, `fix:`, `docs:`) for good changelog sections; do not edit CHANGELOG.md by hand.
+
 ## Hard constraints (do not break)
 
 - No backend, no Graph/Entra/Intune auth, no analytics/telemetry/cookies. Device data lives in React state only.

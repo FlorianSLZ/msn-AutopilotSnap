@@ -9,3 +9,4 @@ dist
 # Never commit real DeviceLink exports or QR images
 *.devicelink.csv
 .wrangler
+release-notes.md
