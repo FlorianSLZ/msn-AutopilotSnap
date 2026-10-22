@@ -2,6 +2,12 @@
 
 All notable changes to AutopilotSnap. Generated on every push to `main` by `scripts/release.mjs`.
 
+## [2026.10.22.1] - 2026-10-22
+
+### Features
+
+- Calendar versions (YYYY.MM.DD.N) stored in version.json
+
 ## [0.4.0] - 2026-10-22
 
 ### Features
