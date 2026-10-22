@@ -168,3 +168,4 @@ main { flex: 1; }
 .nav-mark { width: 32px; height: 32px; display: block; }
 
 .seo-fallback { max-width: 42rem; margin: 0 auto; padding: 2rem 1rem; font-family: system-ui, sans-serif; }
+.app-version { font-size: 11px; opacity: 0.7; font-variant-numeric: tabular-nums; }

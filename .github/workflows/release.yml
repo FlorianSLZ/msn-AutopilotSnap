@@ -1,8 +1,9 @@
 name: Release
 
 # Every push to main gets a new version, a CHANGELOG.md entry, a tag and a
-# GitHub release. The release commit carries [skip ci] so Cloudflare does not
-# build twice.
+# GitHub release. The release commit is pushed with GITHUB_TOKEN, which does
+# not retrigger this workflow; Cloudflare builds it, so the footer shows the
+# new version.
 on:
   push:
     branches: [main]
@@ -16,7 +17,7 @@ concurrency:
 
 jobs:
   release:
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    if: "!startsWith(github.event.head_commit.message, 'chore(release)')"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -37,7 +38,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add CHANGELOG.md package.json package-lock.json
-          git commit -m "chore(release): v${VERSION} [skip ci]"
+          git commit -m "chore(release): v${VERSION}"
           git tag "v${VERSION}"
-          git push origin HEAD:main --follow-tags
+          git push origin HEAD:main "v${VERSION}"
           gh release create "v${VERSION}" --title "v${VERSION}" --notes-file release-notes.md

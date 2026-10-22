@@ -234,6 +234,9 @@ export function App() {
             Independent community project – not an official Microsoft product. &copy; {new Date().getFullYear()}{" "}
             <a href="https://msnugget.com" target="_blank" rel="noopener">msnugget.com</a>
           </p>
+          <p className="disclaimer app-version">
+            <a href="https://github.com/FlorianSLZ/msn-AutopilotSnap/blob/main/CHANGELOG.md" target="_blank" rel="noopener">v{__APP_VERSION__}</a>
+          </p>
         </div>
       </footer>
 
