@@ -2,6 +2,12 @@
 
 All notable changes to AutopilotSnap. Generated on every push to `main` by `scripts/release.mjs`.
 
+## [0.4.0] - 2026-10-22
+
+### Features
+
+- Add FAQ entries for corporate identifier, no-PowerShell and Get-AutopilotCSV
+
 ## [0.3.0] - 2026-10-22
 
 ### Features
