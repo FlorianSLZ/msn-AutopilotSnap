@@ -164,7 +164,7 @@ export function App() {
         <h1>
           Scan. Send. <span className="accent">Deploy.</span>
         </h1>
-        <p className="subline">From the Windows setup screen to your IT team in under a minute.</p>
+        <p className="subline">Scan the Windows Autopilot QR code and send the device CSV to your IT team in under a minute.</p>
       </div>
 
       <ol className="steps" aria-label="Progress">
