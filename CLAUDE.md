@@ -21,7 +21,7 @@ There is no linter configured. Tests cover `src/lib` only; there are no componen
 
 ## Releases
 
-Every push to `main` is versioned by `.github/workflows/release.yml` running `scripts/release.mjs`: it picks the next semver from commits since the last `v*` tag (`feat:` minor, `type!:` or `BREAKING CHANGE:` major, anything else patch), prepends `CHANGELOG.md`, bumps `package.json`/`package-lock.json`, tags and creates a GitHub release. The footer shows the version via the Vite `__APP_VERSION__` define (from `package.json`). The bot commit (`chore(release): vX`, no `[skip ci]` so Cloudflare rebuilds with the new version) lands on `main`, so `git pull` before your next push. Preview with `node scripts/release.mjs --dry-run`. Use conventional prefixes (`feat:`, `fix:`, `docs:`) for good changelog sections; do not edit CHANGELOG.md by hand.
+Every push to `main` is versioned by `.github/workflows/release.yml` running `scripts/release.mjs`: it assigns a calendar version `YYYY.MM.DD.N` (UTC date, N = release number of that day), prepends `CHANGELOG.md`, writes `version.json`, tags and creates a GitHub release. The footer shows the version via the Vite `__APP_VERSION__` define (from the `version.json` file; `package.json` keeps its own placeholder version). The bot commit (`chore(release): vX`, no `[skip ci]` so Cloudflare rebuilds with the new version) lands on `main`, so `git pull` before your next push. Preview with `node scripts/release.mjs --dry-run`. Conventional prefixes (`feat:`, `fix:`, `docs:`) only decide the changelog section, not the version number; do not edit CHANGELOG.md by hand.
 
 ## Hard constraints (do not break)
 
