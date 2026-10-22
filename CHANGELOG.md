@@ -2,6 +2,12 @@
 
 All notable changes to AutopilotSnap. Generated on every push to `main` by `scripts/release.mjs`.
 
+## [0.3.0] - 2026-10-22
+
+### Features
+
+- Keyworded subline and sameAs in JSON-LD
+
 ## [0.2.1] - 2026-10-22
 
 ### Fixes
