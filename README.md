@@ -4,6 +4,8 @@
 
 Send Windows Autopilot device information to your IT team, straight from your phone. No admin credentials required.
 
+**Use it now: https://autopilotsnap.msnugget.com/**
+
 AutopilotSnap is a small web app for the person who unboxes and prepares Windows devices. You scan the QR code that Windows shows during setup, check the detected device, and send a ready-made CSV to the IT administrator. The administrator uploads that file to Intune. You never sign in to anything.
 
 > AutopilotSnap is an independent community project by [msnugget](https://msnugget.com). It is **not** an official Microsoft product and is not affiliated with or endorsed by Microsoft.
