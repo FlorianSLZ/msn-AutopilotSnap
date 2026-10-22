@@ -20,8 +20,28 @@ const FAQ: Array<{ q: string; a: React.ReactNode }> = [
     a: "AutopilotSnap cannot send email itself. On phones and browsers that support file sharing, “Send” opens your share sheet with the CSV already attached, and you pick your mail app. Otherwise the CSV is downloaded and your default mail app opens with subject and text filled in. In that case you must attach the downloaded file yourself, because a mailto: link cannot attach files.",
   },
   {
-    q: "What is in the CSV and what does the admin do with it?",
+    q: "What does the corporate identifier CSV look like, and what does the admin do with it?",
     a: "One line per device in the format Manufacturer,Model,Serial number, for example “Microsoft Corporation,Surface Laptop Studio,0F00NFU231300C”, with no header row. In the Intune admin center the admin adds it as a corporate device identifier (Devices → Enrollment → Corporate device identifiers → Add → Upload a CSV file → Manufacturer, model and serial number). Menu names can change; check Microsoft’s documentation.",
+  },
+  {
+    q: "How do I add a corporate device identifier for Autopilot device preparation?",
+    a: (
+      <>
+        Upload a CSV with Manufacturer, Model and Serial number in Intune under Devices → Enrollment → Corporate device identifiers. AutopilotSnap creates exactly that file from the QR code, so nobody has to type serial numbers. See Microsoft’s{" "}
+        <a href="https://learn.microsoft.com/en-us/autopilot/device-preparation/overview" target="_blank" rel="noopener">
+          Autopilot device preparation documentation
+        </a>{" "}
+        for the full setup.
+      </>
+    ),
+  },
+  {
+    q: "How do I get manufacturer, model and serial number of a Windows device without PowerShell?",
+    a: "Scan the QR code from the Windows setup screen (OOBE) with AutopilotSnap. The code contains all three values, so you do not need to sign in to the device or run a script. This works before Windows setup is finished.",
+  },
+  {
+    q: "Is this the same as a script like Get-AutopilotCSV or a hardware hash upload?",
+    a: "No. Scripts such as Get-AutopilotCSV run on the device itself, and a hardware hash is a different identifier used by classic Autopilot. AutopilotSnap reads the manufacturer, model and serial number from the OOBE QR code and does not capture a hardware hash.",
   },
   {
     q: "Is this the same as Device association?",
