@@ -2,6 +2,12 @@
 
 All notable changes to AutopilotSnap. Generated on every push to `main` by `scripts/release.mjs`.
 
+## [2026.10.22.2] - 2026-10-22
+
+### Changes
+
+- Chore: stop tracking CLAUDE.md and .gitignore
+
 ## [2026.10.22.1] - 2026-10-22
 
 ### Features
