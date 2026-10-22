@@ -13,7 +13,7 @@ const FAQ: Array<{ q: string; a: React.ReactNode }> = [
   },
   {
     q: "Where does my data go?",
-    a: "Nowhere. The QR code is decoded in your browser, the CSV is created in your browser, and nothing is uploaded to AutopilotSnap or any other server. There is no backend, no analytics and no cookies. The only things stored in your browser are your light/dark choice and, if you set one, an optional IT email address that prefills the email app. Device data lives in memory only and disappears when you reload the page or tap “Start over”.",
+    a: "Nowhere. The QR code is decoded in your browser, the CSV is created in your browser, and nothing is uploaded to AutopilotSnap or any other server. There is no backend, no analytics and no cookies. The only thing stored in your browser is your light/dark choice. Device data lives in memory only and disappears when you reload the page or tap “Start over”.",
   },
   {
     q: "How does the email work? Is the CSV attached automatically?",

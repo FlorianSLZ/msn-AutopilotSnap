@@ -8,7 +8,6 @@ import { Faq } from "./Faq";
 import { HowTo } from "./HowTo";
 import { scanFeedback } from "./lib/feedback";
 import { appUrl, createQr } from "./lib/qr";
-import { isValidEmail, loadRecipient, saveRecipient } from "./lib/settings";
 
 type Step = "scan" | "review";
 
@@ -43,13 +42,13 @@ function errorMessage(e: unknown): string {
   return "Something went wrong. Please try again.";
 }
 
-function mailFor(devices: DeviceLink[], to: string): MailContent {
+function mailFor(devices: DeviceLink[]): MailContent {
   const one = devices.length === 1 ? devices[0] : undefined;
   const lines = one
     ? [`Serial number: ${one.serialNumber}`, `Manufacturer: ${one.manufacturer}`, `Model: ${one.model}`]
     : devices.map((d) => `- ${d.serialNumber} (${d.manufacturer} ${d.model})`);
   return {
-    to,
+    to: "",
     subject: one
       ? `Autopilot device association - ${one.serialNumber}`
       : `Autopilot device association - ${devices.length} devices`,
@@ -82,8 +81,6 @@ export function App() {
   const [step, setStep] = useState<Step>("scan");
   const [devices, setDevices] = useState<DeviceLink[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
-  const [recipient, setRecipient] = useState(loadRecipient);
-  const [showSettings, setShowSettings] = useState(false);
   const [showMobile, setShowMobile] = useState(false);
   const route = useRoute();
 
@@ -129,13 +126,6 @@ export function App() {
                 <path d="M7 12h2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
             </button>
-            <button className="theme-toggle" onClick={() => setShowSettings(true)} aria-label="Settings" title="Settings">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                <path d="M2 4h7M12 4h2M2 12h2M7 12h7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                <circle cx="10.5" cy="4" r="1.6" stroke="currentColor" strokeWidth="1.5" />
-                <circle cx="5.5" cy="12" r="1.6" stroke="currentColor" strokeWidth="1.5" />
-              </svg>
-            </button>
             <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle light/dark theme" title="Toggle theme">
             <svg className="icon-sun" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
               <circle cx="8" cy="8" r="3" stroke="currentColor" strokeWidth="1.5" />
@@ -176,7 +166,6 @@ export function App() {
           <ReviewView
             devices={devices}
             notice={notice}
-            recipient={recipient}
             onAdd={() => {
               setNotice(null);
               setStep("scan");
@@ -226,17 +215,6 @@ export function App() {
 
       {showMobile && <MobileDialog onClose={() => setShowMobile(false)} />}
 
-      {showSettings && (
-        <SettingsDialog
-          value={recipient}
-          onClose={() => setShowSettings(false)}
-          onSave={(v) => {
-            saveRecipient(v);
-            setRecipient(v);
-            setShowSettings(false);
-          }}
-        />
-      )}
     </>
   );
 }
@@ -403,14 +381,12 @@ function ScanView({ onDevices, existing, onBack }: { onDevices: (d: DeviceLink[]
 function ReviewView({
   devices,
   notice,
-  recipient,
   onAdd,
   onRemove,
   onStartOver,
 }: {
   devices: DeviceLink[];
   notice: string | null;
-  recipient: string;
   onAdd: () => void;
   onRemove: (serial: string) => void;
   onStartOver: () => void;
@@ -434,7 +410,7 @@ function ReviewView({
   const shareSupported = canShareFile(new File([""], "x.csv", { type: "text/csv" }));
 
   const send = async () => {
-    const outcome = await sendFile(makeFile(), mailFor(devices, recipient));
+    const outcome = await sendFile(makeFile(), mailFor(devices));
     if (outcome === "fallback") {
       setManualAttach(true);
       setStatus(null);
@@ -522,7 +498,7 @@ function ReviewView({
       {manualAttach && (
         <p className="note strong" role="status">
           CSV downloaded. Your email app should open – <strong>attach {filename}</strong> from your Downloads before sending.{" "}
-          <button className="textbtn" onClick={() => openMailClient(mailFor(devices, recipient))}>
+          <button className="textbtn" onClick={() => openMailClient(mailFor(devices))}>
             Reopen email
           </button>
         </p>
@@ -537,39 +513,6 @@ function ReviewView({
         Start over (clear {many ? "all devices" : "device"})
       </button>
     </section>
-  );
-}
-
-function SettingsDialog({ value, onSave, onClose }: { value: string; onSave: (v: string) => void; onClose: () => void }) {
-  const [v, setV] = useState(value);
-  const valid = v.trim() === "" || isValidEmail(v);
-  return (
-    <div className="overlay" role="dialog" aria-modal="true" aria-labelledby="settings-title" onClick={onClose}>
-      <form
-        className="card dialog"
-        onClick={(e) => e.stopPropagation()}
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (valid) onSave(v);
-        }}
-      >
-        <h2 id="settings-title">Settings</h2>
-        <label>
-          IT email address (optional)
-          <input type="email" autoFocus value={v} onChange={(e) => setV(e.target.value)} placeholder="intune-admin@example.com" autoComplete="off" />
-        </label>
-        <p className="muted">Only used to prefill the email app when your browser can’t share files. Stored only in this browser, never sent anywhere.</p>
-        {!valid && <p className="error">Enter a valid email address.</p>}
-        <div className="row">
-          <button type="button" className="btn secondary" onClick={onClose}>
-            Cancel
-          </button>
-          <button type="submit" className="btn primary" disabled={!valid}>
-            Save
-          </button>
-        </div>
-      </form>
-    </div>
   );
 }
 

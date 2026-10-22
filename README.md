@@ -44,7 +44,7 @@ More answers are on the FAQ page inside the app.
 - No backend, no accounts, no analytics, no telemetry, no cookies.
 - Camera images and uploaded pictures never leave your device.
 - Device data is kept in memory only and is gone when you reload the page or tap **Start over**.
-- Your browser stores only your light/dark choice and, if you set one, an optional IT email address.
+- Your browser stores only your light/dark choice.
 - Data leaves your browser only when you tap Send or Download CSV.
 
 ## Self-hosting
