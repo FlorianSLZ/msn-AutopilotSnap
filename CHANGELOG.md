@@ -2,6 +2,12 @@
 
 All notable changes to AutopilotSnap. Generated on every push to `main` by `scripts/release.mjs`.
 
+## [0.2.0] - 2026-10-22
+
+### Features
+
+- Version every push to main with changelog, tag and GitHub release
+
 ## [0.1.0] - 2026-10-22
 
 First tracked release. Everything up to this point:
