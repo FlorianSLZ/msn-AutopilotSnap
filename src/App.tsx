@@ -82,6 +82,7 @@ export function App() {
   const [devices, setDevices] = useState<DeviceLink[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
   const [showMobile, setShowMobile] = useState(false);
+  const [confirmHome, setConfirmHome] = useState(false);
   const route = useRoute();
 
   const startOver = useCallback(() => {
@@ -89,6 +90,22 @@ export function App() {
     setNotice(null);
     setStep("scan");
   }, []);
+
+  const goHome = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (devices.length > 0) {
+      setConfirmHome(true);
+      return;
+    }
+    leaveToStart();
+  };
+
+  const leaveToStart = () => {
+    startOver();
+    setConfirmHome(false);
+    window.location.hash = "#/";
+    window.scrollTo(0, 0);
+  };
 
   const onDevices = useCallback((added: DeviceLink[], note: string | null) => {
     scanFeedback();
@@ -106,10 +123,9 @@ export function App() {
     <>
       <nav className="nav" aria-label="Main navigation">
         <div className="nav-inner container">
-          <a className="nav-logo" href="https://msnugget.com" target="_blank" rel="noopener" aria-label="msnugget.com">
-            <span className="logo-msn">msnugget</span>
-            <span className="logo-dot">·</span>
-            <span className="logo-rest">autopilotsnap</span>
+          <a className="nav-logo" href="#/" onClick={goHome} aria-label="AutopilotSnap – back to start">
+            <img className="nav-mark" src="./logo/autopilotsnap-msnugget.svg" alt="" width="32" height="32" />
+            <span className="logo-rest">AutopilotSnap</span>
           </a>
           <div className="nav-links">
             <a href="#/" className="nav-link" aria-current={route === "home" ? "page" : undefined}>
@@ -212,6 +228,17 @@ export function App() {
           </p>
         </div>
       </footer>
+
+      {confirmHome && (
+        <ConfirmDialog
+          title="Discard detected devices?"
+          text={`You have ${devices.length} detected ${devices.length === 1 ? "device" : "devices"} that haven’t been sent yet. Going back to the start removes ${devices.length === 1 ? "it" : "them"} and you’d need to scan again.`}
+          confirmLabel="Discard and go back"
+          cancelLabel="Keep devices"
+          onConfirm={leaveToStart}
+          onCancel={() => setConfirmHome(false)}
+        />
+      )}
 
       {showMobile && <MobileDialog onClose={() => setShowMobile(false)} />}
 
@@ -566,6 +593,46 @@ function MobileDialog({ onClose }: { onClose: () => void }) {
         </button>
         <button className="btn secondary" onClick={onClose}>
           Close
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ConfirmDialog({
+  title,
+  text,
+  confirmLabel,
+  cancelLabel,
+  onConfirm,
+  onCancel,
+}: {
+  title: string;
+  text: string;
+  confirmLabel: string;
+  cancelLabel: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCancel();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onCancel]);
+  return (
+    <div className="overlay" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-text" onClick={onCancel}>
+      <div className="card dialog" onClick={(e) => e.stopPropagation()}>
+        <h2 id="confirm-title">{title}</h2>
+        <p id="confirm-text" className="muted">
+          {text}
+        </p>
+        <button className="btn primary" autoFocus onClick={onCancel}>
+          {cancelLabel}
+        </button>
+        <button className="btn secondary" onClick={onConfirm}>
+          {confirmLabel}
         </button>
       </div>
     </div>
