@@ -8,9 +8,15 @@
   "theme_color": "#181818",
   "icons": [
     {
-      "src": "icon.svg",
+      "src": "logo/autopilotsnap-msnugget.svg",
       "sizes": "any",
       "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "logo/autopilotsnap-msnugget.png",
+      "sizes": "800x800",
+      "type": "image/png",
       "purpose": "any"
     }
   ]
