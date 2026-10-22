@@ -41,7 +41,7 @@ const FAQ: Array<{ q: string; a: React.ReactNode }> = [
   },
   {
     q: "Is it an official Microsoft product?",
-    a: "No. AutopilotSnap is an independent, open-source community project (MIT licence) by msnugget. It is not affiliated with or endorsed by Microsoft. The QR format was learned from the open-source AutopilotQR project.",
+    a: "No. AutopilotSnap is an independent, open-source community project (MIT licence) by msnugget. It is not affiliated with or endorsed by Microsoft. The initial version of the idea comes from Simon’s open-source AutopilotQR project. If you want to upload straight to Intune with a sign-in, use his solution. AutopilotSnap is for when you need an option without authentication.",
   },
 ];
 

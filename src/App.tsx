@@ -223,6 +223,9 @@ export function App() {
             <a href="https://www.linkedin.com/in/jannik-r/" target="_blank" rel="noopener">Jannik Reinhard</a>
           </p>
           <p className="disclaimer">
+            Initial version by Simon (<a href="https://github.com/Simsen/AutopilotQR" target="_blank" rel="noopener">AutopilotQR</a>) – use it if you want a direct upload to Intune with sign-in.
+          </p>
+          <p className="disclaimer">
             Independent community project – not an official Microsoft product. &copy; {new Date().getFullYear()}{" "}
             <a href="https://msnugget.com" target="_blank" rel="noopener">msnugget.com</a>
           </p>
