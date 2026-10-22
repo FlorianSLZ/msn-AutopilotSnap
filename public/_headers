@@ -2,6 +2,7 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: no-referrer
   X-Frame-Options: SAMEORIGIN
+  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'sha256-Bwh/h7yY3vTAUAsG+yZHC6AdippXWeGaSu53PpG5c+E=' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'
   Permissions-Policy: camera=(self), microphone=(), geolocation=()
 
 /assets/*

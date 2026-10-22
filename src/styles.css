@@ -166,3 +166,5 @@ main { flex: 1; }
 /* header logo */
 .nav-logo { align-items: center; gap: 10px; }
 .nav-mark { width: 32px; height: 32px; display: block; }
+
+.seo-fallback { max-width: 42rem; margin: 0 auto; padding: 2rem 1rem; font-family: system-ui, sans-serif; }
